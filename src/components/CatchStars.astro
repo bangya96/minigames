@@ -1,0 +1,207 @@
+---
+import '../styles/catch-stars.css';
+---
+
+<div class="stars-game" id="stars-game">
+  <div class="mission-area">
+    <span class="mission-text" id="mission-text">Catch the Numbers!</span>
+    <button class="speaker-btn" id="speak-btn" aria-label="Hear the mission">🔊</button>
+  </div>
+  <div class="score-area">
+    <span id="score">0</span> caught!
+  </div>
+  <div class="stars-field" id="stars-field">
+    <div class="basket" id="basket">🧺</div>
+  </div>
+  <button class="next-btn hidden" id="next-btn">NEXT!</button>
+</div>
+
+<script>
+  import { playSparkle, playBoing, playCheer, speakPhrase } from '../utils/sounds.js';
+
+  const CATCH_GOAL = 5;
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const NUMBERS = '0123456789'.split('');
+  const MAX_STARS = 6;
+
+  let mission: 'letters' | 'numbers' = 'numbers';
+  let score = 0;
+  let roundScore = 0;
+  let roundActive = false;
+  let stars: { el: HTMLDivElement; y: number; speed: number; type: string; value: string }[] = [];
+  let spawnTimer = 0;
+  let animFrameId = 0;
+
+  const starsField = document.getElementById('stars-field')!;
+  const basket = document.getElementById('basket')!;
+  const missionText = document.getElementById('mission-text')!;
+  const scoreEl = document.getElementById('score')!;
+  const nextBtn = document.getElementById('next-btn')!;
+  const speakBtn = document.getElementById('speak-btn')!;
+  const gameEl = document.getElementById('stars-game')!;
+
+  let basketX = 0;
+  let dragging = false;
+  const fieldRect = () => starsField.getBoundingClientRect();
+
+  function initBasketPosition() {
+    const rect = fieldRect();
+    basketX = rect.width / 2 - 40;
+    basket.style.left = `${basketX}px`;
+  }
+
+  basket.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    dragging = true;
+    basket.style.cursor = 'grabbing';
+    try {
+      basket.setPointerCapture(e.pointerId);
+    } catch {}
+  });
+
+  basket.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const rect = fieldRect();
+    const x = e.clientX - rect.left - 40;
+    basketX = Math.max(0, Math.min(rect.width - 80, x));
+    basket.style.left = `${basketX}px`;
+  });
+
+  function endBasketDrag(e: PointerEvent) {
+    if (!dragging) return;
+    dragging = false;
+    basket.style.cursor = 'grab';
+    try {
+      basket.releasePointerCapture(e.pointerId);
+    } catch {}
+  }
+
+  basket.addEventListener('pointerup', endBasketDrag);
+  basket.addEventListener('pointercancel', endBasketDrag);
+
+  starsField.addEventListener('pointerdown', (e) => {
+    if (e.target === basket || basket.contains(e.target as Node)) return;
+    const rect = fieldRect();
+    const x = e.clientX - rect.left - 40;
+    basketX = Math.max(0, Math.min(rect.width - 80, x));
+    basket.style.left = `${basketX}px`;
+  });
+
+  function spawnStar() {
+    if (stars.length >= MAX_STARS) return;
+    const rect = fieldRect();
+    const isLetter = Math.random() < 0.5;
+    const type = isLetter ? 'letters' : 'numbers';
+    const value = isLetter
+      ? LETTERS[Math.floor(Math.random() * LETTERS.length)]
+      : NUMBERS[Math.floor(Math.random() * NUMBERS.length)];
+    const speed = 1 + Math.random() * 1.5;
+    const x = Math.random() * (rect.width - 64);
+
+    const el = document.createElement('div');
+    el.className = 'star';
+    el.textContent = value;
+    el.style.left = `${x}px`;
+    el.style.top = '-64px';
+    starsField.appendChild(el);
+
+    stars.push({ el, y: -64, speed, type, value });
+  }
+
+  function showFloatText(x: number, y: number, text: string, cls: string) {
+    const ft = document.createElement('div');
+    ft.className = `float-text ${cls}`;
+    ft.textContent = text;
+    ft.style.left = `${x}px`;
+    ft.style.top = `${y}px`;
+    starsField.appendChild(ft);
+    setTimeout(() => ft.remove(), 1000);
+  }
+
+  function gameLoop() {
+    if (!roundActive) return;
+
+    spawnTimer++;
+    if (spawnTimer >= 90) {
+      spawnStar();
+      spawnTimer = 0;
+    }
+
+    const rect = fieldRect();
+    const bx = basketX;
+    const by = rect.height - 88;
+
+    for (let i = stars.length - 1; i >= 0; i--) {
+      const star = stars[i];
+      star.y += star.speed;
+      star.el.style.transform = `translateY(${star.y + 64}px)`;
+
+      const sx = parseFloat(star.el.style.left);
+      const sy = star.y;
+      const overlap =
+        sx + 64 > bx && sx < bx + 80 &&
+        sy + 64 > by && sy < by + 80;
+
+      if (overlap) {
+        if (star.type === mission) {
+          playSparkle();
+          roundScore++;
+          score++;
+          scoreEl.textContent = String(score);
+          showFloatText(sx, sy, '+1', 'correct');
+          star.el.classList.add('caught');
+          setTimeout(() => star.el.remove(), 400);
+
+          if (roundScore >= CATCH_GOAL) {
+            roundActive = false;
+            playCheer();
+            nextBtn.classList.remove('hidden');
+          }
+        } else {
+          playBoing();
+          showFloatText(sx, sy, 'Oops!', 'wrong');
+          star.el.classList.add('wrong');
+          setTimeout(() => star.el.remove(), 400);
+        }
+        stars.splice(i, 1);
+        continue;
+      }
+
+      if (star.y > rect.height + 20) {
+        star.el.remove();
+        stars.splice(i, 1);
+      }
+    }
+
+    if (roundActive) {
+      animFrameId = requestAnimationFrame(gameLoop);
+    }
+  }
+
+  function startRound() {
+    stars.forEach(s => s.el.remove());
+    stars = [];
+    spawnTimer = 0;
+    roundScore = 0;
+    roundActive = true;
+    nextBtn.classList.add('hidden');
+    cancelAnimationFrame(animFrameId);
+
+    mission = Math.random() < 0.5 ? 'numbers' : 'letters';
+    const label = mission === 'numbers' ? 'Catch the Numbers!' : 'Catch the Letters!';
+    missionText.textContent = label;
+    speakPhrase(label);
+
+    initBasketPosition();
+    animFrameId = requestAnimationFrame(gameLoop);
+  }
+
+  speakBtn.addEventListener('click', () => {
+    const label = mission === 'numbers' ? 'Catch the Numbers!' : 'Catch the Letters!';
+    speakPhrase(label);
+  });
+
+  nextBtn.addEventListener('click', startRound);
+
+  startRound();
+</script>

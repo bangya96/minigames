@@ -1,0 +1,266 @@
+.bake-game {
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  overflow: hidden;
+  padding: 0.5rem 0.75rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.bake-game .bake-header {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.bake-game .bake-equation {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: white;
+  border: 3px solid #D4A574;
+  border-radius: var(--radius);
+  padding: 0.4rem 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--color-text);
+}
+
+.bake-game .bake-equation .op {
+  color: var(--color-primary);
+}
+
+.bake-game .bake-equation .total {
+  color: var(--color-primary);
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.bake-game .bake-equation .total.reveal {
+  color: var(--color-success);
+  animation: pop-in 0.4s ease-out;
+}
+
+.bake-game .speaker-btn {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0.25rem 0.6rem;
+  margin-left: 0.25rem;
+  background: var(--color-accent);
+  color: var(--color-text);
+  border-radius: var(--radius-full);
+  font-size: 1rem;
+  border: none;
+  box-shadow: 0 2px 0 #D4A51A;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.bake-game .bake-score {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.bake-game .bake-score span {
+  color: var(--color-accent);
+  font-size: 1.1rem;
+}
+
+.bake-game .plates-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  gap: 0.75rem;
+}
+
+.bake-game .plate {
+  flex: 1;
+  background: linear-gradient(180deg, #F5E6D3, #E8D5BF);
+  border: 3px solid #D4A574;
+  border-radius: var(--radius);
+  padding: 0.4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 120px;
+}
+
+.bake-game .plate-a { border-color: #E76F51; }
+.bake-game .plate-b { border-color: #F4A261; }
+
+.bake-game .plate-label {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--color-text);
+  background: white;
+  border-radius: var(--radius-full);
+  padding: 0.05rem 0.75rem;
+}
+
+.bake-game .plate-cookies {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 52px;
+}
+
+.bake-game .cookie-btn {
+  width: 46px;
+  height: 46px;
+  font-size: 1.9rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.bake-game .cookie-btn:active {
+  transform: scale(0.9);
+}
+
+.bake-game .cookie-btn.hiding {
+  opacity: 0.2;
+  transform: scale(0.6);
+}
+
+.bake-game .oven {
+  width: 100%;
+  max-width: 360px;
+  background: linear-gradient(180deg, #444 0%, #2C2C2C 100%);
+  border: 4px solid #1A1A1A;
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  transition: box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.bake-game .oven.hot {
+  box-shadow: 0 0 28px rgba(255, 140, 50, 0.7), 0 4px 10px rgba(0, 0, 0, 0.25);
+  transform: scale(1.03);
+}
+
+.bake-game .oven.done {
+  box-shadow: 0 0 36px rgba(107, 203, 119, 0.8), 0 4px 10px rgba(0, 0, 0, 0.25);
+  animation: oven-done 0.6s ease-out;
+}
+
+.bake-game .oven-top {
+  color: #BDC3C7;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+}
+
+.bake-game .oven-window {
+  width: 100%;
+  background: radial-gradient(ellipse at center, #FF8E53 0%, #E76F51 60%, #9C3D2A 100%);
+  border: 3px solid #1A1A1A;
+  border-radius: 10px;
+  padding: 0.6rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  font-weight: 900;
+  min-height: 92px;
+  justify-content: center;
+}
+
+.bake-game .oven.hot .oven-window {
+  background: radial-gradient(ellipse at center, #FFD93D 0%, #FF8E53 50%, #E76F51 100%);
+}
+
+.bake-game .oven-count {
+  font-size: 3rem;
+  line-height: 1;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.bake-game .oven-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.bake-game .hint {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-text);
+  text-align: center;
+  opacity: 0.7;
+}
+
+.bake-game .next-btn {
+  padding: 0.9rem 2.5rem;
+  background: var(--color-success);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 1.4rem;
+  font-weight: 900;
+  font-family: var(--font-family);
+  cursor: pointer;
+  box-shadow: 0 4px 0 #388E3C;
+  touch-action: manipulation;
+  animation: bounce-in 0.3s ease-out;
+}
+
+.bake-game .next-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #388E3C;
+}
+
+.bake-game .cookie-ghost {
+  position: fixed;
+  width: 56px;
+  height: 56px;
+  font-size: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.4); }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes oven-done {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bounce-in {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (min-width: 768px) {
+  .bake-game { gap: 1rem; padding: 1rem; }
+  .bake-game .cookie-btn { width: 56px; height: 56px; font-size: 2.25rem; }
+  .bake-game .oven-count { font-size: 4rem; }
+  .bake-game .bake-equation { font-size: 2rem; }
+}

@@ -1,0 +1,235 @@
+.balloon-game {
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.prompt-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  flex-wrap: wrap;
+}
+
+.prompt-text {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.target-letter {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.speaker-btn {
+  min-width: var(--touch-min);
+  min-height: 48px;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-accent);
+  color: var(--color-text);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  transition: transform 0.15s;
+}
+
+.speaker-btn:active {
+  transform: scale(0.95);
+}
+
+.score-area {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 0.15rem;
+  color: var(--color-accent);
+}
+
+.score-area span {
+  font-size: 1.25rem;
+}
+
+.balloon-field {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 130px);
+  overflow: hidden;
+}
+
+.balloon {
+  position: absolute;
+  width: 65px;
+  height: 82px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  bottom: -120px;
+  animation: float-up var(--duration, 10s) linear forwards;
+  left: var(--x-position);
+  transition: filter 0.1s;
+}
+
+.balloon::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  width: 2px;
+  height: 30px;
+  background: rgba(0, 0, 0, 0.2);
+  transform: translateX(-50%);
+}
+
+.balloon:nth-child(6n+1) { background: #FF6B6B; }
+.balloon:nth-child(6n+2) { background: #4ECDC4; }
+.balloon:nth-child(6n+3) { background: #FFD93D; }
+.balloon:nth-child(6n+4) { background: #6BCB77; }
+.balloon:nth-child(6n+5) { background: #9B59B6; }
+.balloon:nth-child(6n+6) { background: #FF8E53; }
+
+.balloon:nth-child(6n+3),
+.balloon:nth-child(6n+4) {
+  color: var(--color-text);
+  text-shadow: none;
+}
+
+@keyframes float-up {
+  0% {
+    bottom: -120px;
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(var(--drift, 20px));
+  }
+  50% {
+    transform: translateX(calc(var(--drift, 20px) * -0.5));
+  }
+  75% {
+    transform: translateX(calc(var(--drift, 20px) * 0.7));
+  }
+  100% {
+    bottom: 100%;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.8; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+.balloon.popping {
+  animation: pop 0.3s ease-out forwards !important;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-15px) rotate(-5deg); }
+  40% { transform: translateX(12px) rotate(4deg); }
+  60% { transform: translateX(-8px) rotate(-2deg); }
+  80% { transform: translateX(5px) rotate(1deg); }
+}
+
+.balloon.wobble {
+  animation: wobble 0.4s ease-in-out !important;
+}
+
+#confetti-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.next-btn {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 3rem;
+  background: var(--color-success);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: 1.5rem;
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s;
+}
+
+.next-btn:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.next-btn.hidden {
+  display: none;
+}
+
+@keyframes bounce-in {
+  0% { transform: translateX(-50%) scale(0); }
+  60% { transform: translateX(-50%) scale(1.1); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+
+.next-btn:not(.hidden) {
+  animation: bounce-in 0.3s ease-out;
+}
+
+@media (min-width: 768px) {
+  .balloon-game {
+    height: 100%;
+  }
+
+  .balloon {
+    width: 100px;
+    height: 130px;
+    font-size: 2.5rem;
+  }
+
+  .balloon::after {
+    height: 40px;
+    bottom: -40px;
+  }
+
+  .target-letter {
+    font-size: 4rem;
+  }
+
+  .prompt-text {
+    font-size: 1.5rem;
+  }
+
+  .speaker-btn {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .score-area {
+    font-size: 1.25rem;
+  }
+
+  .score-area span {
+    font-size: 1.5rem;
+  }
+
+  .prompt-area {
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+}

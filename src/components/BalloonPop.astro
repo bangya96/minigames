@@ -1,0 +1,180 @@
+---
+import '../styles/balloon-pop.css';
+---
+
+<div class="balloon-game">
+  <div class="prompt-area">
+    <span class="prompt-text">Find the letter</span>
+    <span class="target-letter" id="target-letter">A</span>
+    <button class="speaker-btn" id="speak-btn" aria-label="Hear the letter">🔊</button>
+  </div>
+
+  <div class="score-area">
+    <span id="score">0</span> stars!
+  </div>
+
+  <div class="balloon-field" id="balloon-field"></div>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <button class="next-btn hidden" id="next-btn">NEXT!</button>
+</div>
+
+<script>
+  import { playPop, playCheer, playBoing, speakLetter } from '../utils/sounds.js';
+
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const BALLOON_COUNT = 7;
+  const COLORS_COUNT = 6;
+
+  let targetLetter = '';
+  let score = 0;
+  let roundActive = false;
+
+  const balloonField = document.getElementById('balloon-field')!;
+  const targetEl = document.getElementById('target-letter')!;
+  const scoreEl = document.getElementById('score')!;
+  const nextBtn = document.getElementById('next-btn')!;
+  const speakBtn = document.getElementById('speak-btn')!;
+  const canvas = document.getElementById('confetti-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  function shuffle<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function spawnConfetti() {
+    const particles: { x: number; y: number; vx: number; vy: number; color: string; size: number; life: number }[] = [];
+    const confettiColors = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCB77', '#9B59B6', '#FF8E53'];
+
+    for (let i = 0; i < 40; i++) {
+      particles.push({
+        x: canvas.width / 2 + (Math.random() - 0.5) * 100,
+        y: canvas.height / 2,
+        vx: (Math.random() - 0.5) * 12,
+        vy: -Math.random() * 10 - 5,
+        color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+        size: Math.random() * 8 + 4,
+        life: 1,
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+
+      for (const p of particles) {
+        if (p.life <= 0) continue;
+        alive = true;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.3;
+        p.life -= 0.015;
+
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (alive) {
+        requestAnimationFrame(animate);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  function createBalloon(letter: string, index: number): HTMLDivElement {
+    const balloon = document.createElement('div');
+    balloon.className = 'balloon';
+    balloon.textContent = letter;
+    balloon.dataset.letter = letter;
+
+    const xPosition = 5 + (index * (85 / BALLOON_COUNT)) + Math.random() * (85 / BALLOON_COUNT - 10);
+    const duration = 8 + Math.random() * 7;
+    const drift = (Math.random() - 0.5) * 60;
+
+    balloon.style.setProperty('--x-position', `${xPosition}%`);
+    balloon.style.setProperty('--duration', `${duration}s`);
+    balloon.style.setProperty('--drift', `${drift}px`);
+    balloon.style.animationDelay = `${Math.random() * 2}s`;
+
+    balloon.addEventListener('click', () => handleBalloonClick(balloon, letter));
+    balloon.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleBalloonClick(balloon, letter);
+    }, { passive: false });
+
+    return balloon;
+  }
+
+  function handleBalloonClick(balloon: HTMLDivElement, letter: string) {
+    if (!roundActive) return;
+    if (balloon.classList.contains('popping') || balloon.classList.contains('wobble')) return;
+
+    if (letter === targetLetter) {
+      roundActive = false;
+      balloon.classList.add('popping');
+      playPop();
+      setTimeout(playCheer, 150);
+      spawnConfetti();
+      score++;
+      scoreEl.textContent = String(score);
+      nextBtn.classList.remove('hidden');
+    } else {
+      balloon.classList.add('wobble');
+      playBoing();
+      setTimeout(() => balloon.classList.remove('wobble'), 400);
+    }
+  }
+
+  function startRound() {
+    roundActive = true;
+    nextBtn.classList.add('hidden');
+    balloonField.innerHTML = '';
+
+    targetLetter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    targetEl.textContent = targetLetter;
+
+    const letters = [targetLetter];
+    const available = LETTERS.filter(l => l !== targetLetter);
+    const shuffled = shuffle(available);
+    for (let i = 0; i < BALLOON_COUNT - 1; i++) {
+      letters.push(shuffled[i % shuffled.length]);
+    }
+
+    const mixed = shuffle(letters);
+    mixed.forEach((letter, i) => {
+      const balloon = createBalloon(letter, i);
+      balloonField.appendChild(balloon);
+    });
+
+    speakLetter(targetLetter);
+  }
+
+  speakBtn.addEventListener('click', () => {
+    speakLetter(targetLetter);
+  });
+
+  nextBtn.addEventListener('click', () => {
+    startRound();
+  });
+
+  startRound();
+</script>

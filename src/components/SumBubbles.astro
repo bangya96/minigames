@@ -1,0 +1,200 @@
+---
+import '../styles/sum-bubbles.css';
+---
+
+<div class="bubbles-game">
+  <div class="prompt-area">
+    <span class="prompt-text">
+      <span id="a">1</span>
+      <span class="symbol">+</span>
+      <span id="b">1</span>
+      <span class="symbol">=</span>
+      <span class="target-q">?</span>
+    </span>
+    <button class="speaker-btn" id="speak-btn" aria-label="Hear the question">🔊</button>
+  </div>
+
+  <div class="score-area">
+    <span id="score">0</span> stars!
+  </div>
+
+  <div class="bubble-field" id="bubble-field"></div>
+
+  <canvas id="bubble-confetti"></canvas>
+
+  <button class="next-btn hidden" id="next-btn">NEXT!</button>
+</div>
+
+<script>
+  import { playPop, playCheer, playBoing, speakPhrase } from '../utils/sounds.js';
+
+  const MAX_BUBBLES = 6;
+  const SPAWN_INTERVAL_MS = 1100;
+
+  const field = document.getElementById('bubble-field')!;
+  const aEl = document.getElementById('a')!;
+  const bEl = document.getElementById('b')!;
+  const scoreEl = document.getElementById('score')!;
+  const nextBtn = document.getElementById('next-btn')!;
+  const speakBtn = document.getElementById('speak-btn')!;
+  const canvas = document.getElementById('bubble-confetti') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  let a = 0, b = 0, sum = 0;
+  let score = 0;
+  let roundActive = false;
+  let spawnTimer: number | null = null;
+
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  function pickAddition() {
+    a = 1 + Math.floor(Math.random() * 8);
+    b = 1 + Math.floor(Math.random() * (10 - a));
+    sum = a + b;
+  }
+
+  function sayQuestion() {
+    speakPhrase(`${a} plus ${b} equals?`);
+  }
+
+  function spawnBubble() {
+    if (!roundActive) return;
+    if (field.querySelectorAll('.bubble:not(.popping):not(.wobble-out)').length >= MAX_BUBBLES) return;
+
+    const correctOnscreen = field.querySelectorAll(`.bubble[data-value="${sum}"]`).length;
+    let value: number;
+    if (correctOnscreen === 0 && Math.random() < 0.4) {
+      value = sum;
+    } else {
+      value = 1 + Math.floor(Math.random() * 10);
+    }
+
+    const el = document.createElement('div');
+    el.className = 'bubble';
+    el.textContent = String(value);
+    el.dataset.value = String(value);
+
+    const fieldWidth = field.clientWidth;
+    const left = 8 + Math.random() * Math.max(0, fieldWidth - 80);
+    const duration = 9 + Math.random() * 4;
+    const drift = (Math.random() - 0.5) * 50;
+
+    el.style.left = `${left}px`;
+    el.style.setProperty('--duration', `${duration}s`);
+    el.style.setProperty('--drift', `${drift}px`);
+
+    const onTap = (e: Event) => {
+      e.preventDefault();
+      handleTap(el, value);
+    };
+    el.addEventListener('click', onTap);
+    el.addEventListener('touchstart', onTap, { passive: false });
+
+    field.appendChild(el);
+    el.addEventListener('animationend', (e) => {
+      if ((e as AnimationEvent).animationName === 'bubble-rise') el.remove();
+    });
+  }
+
+  function handleTap(el: HTMLDivElement, value: number) {
+    if (!roundActive) return;
+    if (el.classList.contains('popping') || el.classList.contains('wobble-out')) return;
+
+    if (value === sum) {
+      roundActive = false;
+      el.classList.add('popping');
+      playPop();
+      setTimeout(playCheer, 150);
+      score++;
+      scoreEl.textContent = String(score);
+      spawnConfetti(el);
+      setTimeout(() => el.remove(), 300);
+      nextBtn.classList.remove('hidden');
+      stopSpawn();
+    } else {
+      playBoing();
+      el.classList.add('wobble-out');
+      setTimeout(() => el.classList.remove('wobble-out'), 400);
+    }
+  }
+
+  function spawnConfetti(origin: HTMLDivElement) {
+    const rect = origin.getBoundingClientRect();
+    const fieldRect = field.getBoundingClientRect();
+    const cx = rect.left - fieldRect.left + rect.width / 2;
+    const cy = rect.top - fieldRect.top + rect.height / 2;
+    const colors = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCB77', '#9B59B6', '#FF8E53'];
+    const particles: { x: number; y: number; vx: number; vy: number; color: string; size: number; life: number }[] = [];
+    for (let i = 0; i < 36; i++) {
+      particles.push({
+        x: cx,
+        y: cy,
+        vx: (Math.random() - 0.5) * 12,
+        vy: -Math.random() * 10 - 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: 3 + Math.random() * 6,
+        life: 1,
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      for (const p of particles) {
+        if (p.life <= 0) continue;
+        alive = true;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.35;
+        p.life -= 0.018;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      if (alive) requestAnimationFrame(animate);
+      else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    requestAnimationFrame(animate);
+  }
+
+  function startSpawn() {
+    stopSpawn();
+    spawnTimer = window.setInterval(spawnBubble, SPAWN_INTERVAL_MS);
+    spawnBubble();
+    setTimeout(spawnBubble, 300);
+  }
+
+  function stopSpawn() {
+    if (spawnTimer !== null) {
+      clearInterval(spawnTimer);
+      spawnTimer = null;
+    }
+  }
+
+  function clearField() {
+    field.querySelectorAll('.bubble').forEach(el => el.remove());
+  }
+
+  function startRound() {
+    clearField();
+    pickAddition();
+    aEl.textContent = String(a);
+    bEl.textContent = String(b);
+    nextBtn.classList.add('hidden');
+    roundActive = true;
+    startSpawn();
+    sayQuestion();
+  }
+
+  speakBtn.addEventListener('click', sayQuestion);
+  nextBtn.addEventListener('click', startRound);
+
+  startRound();
+</script>

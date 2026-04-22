@@ -1,0 +1,126 @@
+---
+import '../styles/animal-match.css';
+---
+
+<div class="animal-game">
+  <div class="prompt-area">
+    <span class="prompt-text">What letter does it start with?</span>
+    <button class="speaker-btn" id="speak-btn" aria-label="Hear the prompt">🔊</button>
+  </div>
+
+  <div class="animal-display">
+    <span class="animal-emoji" id="animal-emoji">🦁</span>
+    <span class="animal-name" id="animal-name">Lion</span>
+  </div>
+
+  <div class="letter-buttons" id="letter-buttons"></div>
+
+  <div class="score-area">
+    <span id="score">0</span> stars!
+  </div>
+
+  <button class="next-btn hidden" id="next-btn">NEXT!</button>
+</div>
+
+<script>
+  import { playPop, playCheer, playBoing, speakPhrase } from '../utils/sounds.js';
+
+  const ANIMALS = [
+    { emoji: '🦁', name: 'Lion', letter: 'L' },
+    { emoji: '🐘', name: 'Elephant', letter: 'E' },
+    { emoji: '🐯', name: 'Tiger', letter: 'T' },
+    { emoji: '🐸', name: 'Frog', letter: 'F' },
+    { emoji: '🐵', name: 'Monkey', letter: 'M' },
+    { emoji: '🐧', name: 'Penguin', letter: 'P' },
+    { emoji: '🐍', name: 'Snake', letter: 'S' },
+    { emoji: '🐢', name: 'Turtle', letter: 'T' },
+    { emoji: '🦊', name: 'Fox', letter: 'F' },
+    { emoji: '🐶', name: 'Dog', letter: 'D' },
+    { emoji: '🐱', name: 'Cat', letter: 'C' },
+    { emoji: '🐰', name: 'Rabbit', letter: 'R' },
+    { emoji: '🦒', name: 'Giraffe', letter: 'G' },
+    { emoji: '🐬', name: 'Dolphin', letter: 'D' },
+    { emoji: '🦋', name: 'Butterfly', letter: 'B' },
+    { emoji: '🐻', name: 'Bear', letter: 'B' },
+  ];
+
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  let currentAnimal = ANIMALS[0];
+  let score = 0;
+  let roundActive = false;
+  const recentAnimals: number[] = [];
+
+  const animalEmoji = document.getElementById('animal-emoji')!;
+  const animalName = document.getElementById('animal-name')!;
+  const letterButtons = document.getElementById('letter-buttons')!;
+  const scoreEl = document.getElementById('score')!;
+  const nextBtn = document.getElementById('next-btn')!;
+  const speakBtn = document.getElementById('speak-btn')!;
+
+  function shuffle<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function startRound() {
+    roundActive = true;
+    nextBtn.classList.add('hidden');
+    letterButtons.innerHTML = '';
+
+    let idx: number;
+    do {
+      idx = Math.floor(Math.random() * ANIMALS.length);
+    } while (recentAnimals.includes(idx));
+    recentAnimals.push(idx);
+    if (recentAnimals.length > 4) recentAnimals.shift();
+
+    currentAnimal = ANIMALS[idx];
+    animalEmoji.textContent = currentAnimal.emoji;
+    animalName.textContent = currentAnimal.name;
+
+    const correct = currentAnimal.letter;
+    const distractors = shuffle(ALPHABET.filter(l => l !== correct)).slice(0, 2);
+    const options = shuffle([correct, ...distractors]);
+
+    options.forEach(letter => {
+      const btn = document.createElement('button');
+      btn.className = 'letter-btn';
+      btn.textContent = letter;
+      btn.addEventListener('click', () => handleLetterClick(btn, letter));
+      letterButtons.appendChild(btn);
+    });
+
+    speakPhrase(`${currentAnimal.name} starts with the letter ${currentAnimal.letter}!`);
+  }
+
+  function handleLetterClick(btn: HTMLButtonElement, letter: string) {
+    if (!roundActive) return;
+    if (btn.classList.contains('glow') || btn.classList.contains('shake')) return;
+
+    if (letter === currentAnimal.letter) {
+      roundActive = false;
+      btn.classList.add('glow');
+      playPop();
+      setTimeout(playCheer, 150);
+      score++;
+      scoreEl.textContent = String(score);
+      nextBtn.classList.remove('hidden');
+    } else {
+      btn.classList.add('shake');
+      playBoing();
+      setTimeout(() => btn.classList.remove('shake'), 400);
+    }
+  }
+
+  speakBtn.addEventListener('click', () => {
+    speakPhrase(`${currentAnimal.name} starts with the letter ${currentAnimal.letter}!`);
+  });
+
+  nextBtn.addEventListener('click', startRound);
+
+  startRound();
+</script>

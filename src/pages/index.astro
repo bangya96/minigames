@@ -1,0 +1,275 @@
+---
+import '../styles/global.css';
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Mini Games for Kids</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="home">
+    <h1 class="home-title">Mini Games!</h1>
+    <p class="home-subtitle">Pick a game to play</p>
+    <div class="game-cards">
+      <a href="/balloon-pop" class="game-card card-balloons">
+        <span class="card-emoji">🎈</span>
+        <span class="card-title">Alphabet Balloon Pop</span>
+        <span class="card-desc">Pop the right letter!</span>
+        <span class="play-btn">PLAY</span>
+      </a>
+      <a href="/number-train" class="game-card card-train">
+        <span class="card-emoji">🚂</span>
+        <span class="card-title">Number Train</span>
+        <span class="card-desc">Find the missing number!</span>
+        <span class="play-btn">PLAY</span>
+      </a>
+      <a href="/animal-match" class="game-card card-animals">
+        <span class="card-emoji">🦁</span>
+        <span class="card-title">Animal Letter Match</span>
+        <span class="card-desc">Match letters to animals!</span>
+        <span class="play-btn">PLAY</span>
+      </a>
+      <a href="/catch-stars" class="game-card card-stars">
+        <span class="card-emoji">⭐</span>
+        <span class="card-title">Catch the Stars</span>
+        <span class="card-desc">Sort letters and numbers!</span>
+        <span class="play-btn">PLAY</span>
+      </a>
+      <a href="/monster-feed" class="game-card card-monster">
+        <span class="card-emoji">👾</span>
+        <span class="card-title">Feed the Monster</span>
+        <span class="card-desc">Count the cookies!</span>
+        <span class="play-btn">PLAY</span>
+      </a>
+      <a href="/connect-dots" class="game-card card-dots">
+        <span class="card-emoji">✨</span>
+        <span class="card-title">Connect the Dots</span>
+        <span class="card-desc">Draw hidden shapes!</span>
+        <span class="play-btn">PLAY</span>
+      </a>
+      <a href="/apple-adder" class="game-card card-apples">
+        <span class="card-emoji">🍎</span>
+        <span class="card-title">Apple Adder</span>
+        <span class="card-desc">Add the apples!</span>
+        <span class="play-btn">PLAY</span>
+      </a>
+      <a href="/sum-bubbles" class="game-card card-bubbles">
+        <span class="card-emoji">🫧</span>
+        <span class="card-title">Sum Bubbles</span>
+        <span class="card-desc">Pop the right number!</span>
+        <span class="play-btn">PLAY</span>
+      </a>
+      <a href="/cookie-bake" class="game-card card-bake">
+        <span class="card-emoji">🍪</span>
+        <span class="card-title">Cookie Bake</span>
+        <span class="card-desc">Count into the oven!</span>
+        <span class="play-btn">PLAY</span>
+      </a>
+    </div>
+  </main>
+
+  <style>
+    .home {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 1.5rem 1rem;
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+      padding-top: max(1.5rem, env(safe-area-inset-top));
+      padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+      text-align: center;
+    }
+
+    .home-title {
+      font-size: 2.25rem;
+      font-weight: 900;
+      color: var(--color-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .home-subtitle {
+      font-size: 1.125rem;
+      color: var(--color-text);
+      opacity: 0.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .game-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .game-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+      padding: 1rem 0.5rem;
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: white;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .game-card:active {
+      transform: scale(0.97);
+    }
+
+    .card-balloons {
+      background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    }
+
+    .card-train {
+      background: linear-gradient(135deg, #4ECDC4, #3498DB);
+    }
+
+    .card-animals {
+      background: linear-gradient(135deg, #FFD93D, #F39C12);
+    }
+
+    .card-stars {
+      background: linear-gradient(135deg, #3498DB, #2980B9);
+    }
+
+    .card-monster {
+      background: linear-gradient(135deg, #9B59B6, #8E44AD);
+    }
+
+    .card-dots {
+      background: linear-gradient(135deg, #6BCB77, #27AE60);
+    }
+
+    .card-apples {
+      background: linear-gradient(135deg, #E74C3C, #FF8E53);
+    }
+
+    .card-bubbles {
+      background: linear-gradient(135deg, #00B4D8, #90E0EF);
+    }
+
+    .card-bake {
+      background: linear-gradient(135deg, #F4A261, #E76F51);
+    }
+
+    .card-emoji {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 900;
+    }
+
+    .card-desc {
+      font-size: 0.7rem;
+      opacity: 0.9;
+    }
+
+    .play-btn {
+      display: inline-block;
+      margin-top: 0.15rem;
+      padding: 0.35rem 1.25rem;
+      background: white;
+      color: inherit;
+      border-radius: var(--radius-full);
+      font-size: 0.9rem;
+      font-weight: 900;
+      font-family: var(--font-family);
+    }
+
+    .card-balloons .play-btn {
+      color: #FF6B6B;
+    }
+
+    .card-train .play-btn {
+      color: #3498DB;
+    }
+
+    .card-animals .play-btn {
+      color: #F39C12;
+    }
+
+    .card-stars .play-btn {
+      color: #3498DB;
+    }
+
+    .card-monster .play-btn {
+      color: #9B59B6;
+    }
+
+    .card-dots .play-btn {
+      color: #27AE60;
+    }
+
+    .card-apples .play-btn {
+      color: #E74C3C;
+    }
+
+    .card-bubbles .play-btn {
+      color: #0077B6;
+    }
+
+    .card-bake .play-btn {
+      color: #E76F51;
+    }
+
+    @media (min-width: 768px) {
+      .home {
+        padding: 2rem;
+      }
+
+      .home-title {
+        font-size: var(--font-size-huge);
+      }
+
+      .home-subtitle {
+        font-size: 1.25rem;
+        margin-bottom: 2rem;
+      }
+
+      .game-cards {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 750px;
+        gap: 1rem;
+      }
+
+      .game-card {
+        padding: 1.5rem 1rem;
+        gap: 0.35rem;
+      }
+
+      .card-emoji {
+        font-size: 3rem;
+      }
+
+      .card-title {
+        font-size: 1.15rem;
+      }
+
+      .card-desc {
+        font-size: 0.85rem;
+      }
+
+      .play-btn {
+        margin-top: 0.35rem;
+        padding: 0.5rem 1.75rem;
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</body>
+</html>

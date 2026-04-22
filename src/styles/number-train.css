@@ -1,0 +1,433 @@
+.train-game {
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  overflow: hidden;
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.carriage-cell {
+  display: flex;
+  align-items: flex-end;
+}
+
+.train-prompt {
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.train-score {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-accent);
+}
+
+.train-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0.5rem 0.5rem 1.5rem;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.locomotive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.locomotive-body {
+  width: 60px;
+  height: 55px;
+  background: #E74C3C;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.locomotive-body::before {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: #C0392B;
+  border-radius: 3px;
+}
+
+.locomotive-body::after {
+  content: '';
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 8px solid #95A5A6;
+  opacity: 0.5;
+}
+
+.locomotive-face {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.wheels {
+  display: flex;
+  gap: 12px;
+  padding: 3px 8px;
+  background: #7F8C8D;
+  border-radius: 0 0 3px 3px;
+}
+
+.wheel {
+  width: 14px;
+  height: 14px;
+  background: #2C3E50;
+  border-radius: 50%;
+  border: 2px solid #34495E;
+}
+
+.carriages-row {
+  display: flex;
+  align-items: flex-end;
+}
+
+.connector {
+  width: 6px;
+  height: 4px;
+  background: #7F8C8D;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+.carriage {
+  width: 55px;
+  height: 50px;
+  background: #3498DB;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: white;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.carriage.empty {
+  background: #ECF0F1;
+  border: 3px dashed #BDC3C7;
+  color: #BDC3C7;
+  cursor: pointer;
+  animation: pulse-empty 1.5s ease-in-out infinite;
+}
+
+.carriage.empty.wrong {
+  animation: shake-carriage 0.4s ease-in-out;
+  border-color: #E74C3C;
+}
+
+.carriage.filled {
+  background: #27AE60;
+  animation: pop-in 0.3s ease-out;
+}
+
+.carriage-wheels {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+}
+
+.carriage-wheel {
+  width: 12px;
+  height: 12px;
+  background: #2C3E50;
+  border-radius: 50%;
+  border: 2px solid #34495E;
+}
+
+@keyframes pulse-empty {
+  0%, 100% { border-color: #BDC3C7; }
+  50% { border-color: #F39C12; }
+}
+
+@keyframes shake-carriage {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.8); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.tracks {
+  display: flex;
+  gap: 0;
+  padding: 0 0.5rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.track-segment {
+  width: 55px;
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    #7F8C8D 0px,
+    #7F8C8D 8px,
+    transparent 8px,
+    transparent 16px
+  );
+  position: relative;
+  flex-shrink: 0;
+}
+
+.track-segment::before,
+.track-segment::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #95A5A6;
+}
+
+.track-segment::before { top: 0; }
+.track-segment::after { bottom: 0; }
+
+.track-segment.loco-track {
+  width: 60px;
+}
+
+.options-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-bottom: 0.75rem;
+}
+
+.options-label {
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.options-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.option-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  font-size: 2rem;
+  font-weight: 900;
+  border: 4px solid transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.option-btn.opt-0 {
+  background: #FF6B6B;
+  color: white;
+}
+
+.option-btn.opt-1 {
+  background: #4ECDC4;
+  color: white;
+}
+
+.option-btn.opt-2 {
+  background: #FFD93D;
+  color: var(--color-text);
+}
+
+.option-btn:active {
+  transform: scale(0.95);
+}
+
+.option-btn.selected {
+  border-color: #F1C40F;
+  transform: scale(1.15);
+  box-shadow: 0 0 20px rgba(241, 196, 15, 0.6);
+}
+
+.option-btn.used {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.next-round-btn {
+  padding: 1rem 2.5rem;
+  background: var(--color-success);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s;
+}
+
+.next-round-btn:active {
+  transform: scale(0.95);
+}
+
+.drag-ghost {
+  position: fixed;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  font-size: 2rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.9;
+  transform: translate(-50%, -50%);
+}
+
+@media (min-width: 768px) {
+  .train-game {
+    height: 100%;
+    padding: 1rem 1rem;
+    gap: 1rem;
+  }
+
+  .train-prompt {
+    font-size: 1.5rem;
+  }
+
+  .train-score {
+    font-size: 1.25rem;
+  }
+
+  .train-wrapper {
+    padding: 1rem 0.5rem 2rem;
+  }
+
+  .locomotive-body {
+    width: 80px;
+    height: 70px;
+  }
+
+  .locomotive-body::before {
+    top: -20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .locomotive-body::after {
+    top: -28px;
+    border-left-width: 8px;
+    border-right-width: 8px;
+    border-bottom-width: 10px;
+  }
+
+  .locomotive-face {
+    font-size: 2rem;
+  }
+
+  .wheels {
+    gap: 20px;
+    padding: 4px 10px;
+  }
+
+  .wheel {
+    width: 18px;
+    height: 18px;
+  }
+
+  .connector {
+    width: 8px;
+    height: 6px;
+    margin-bottom: 12px;
+  }
+
+  .carriage {
+    width: 80px;
+    height: 65px;
+    font-size: 2rem;
+    border-radius: 8px;
+  }
+
+  .carriage.empty {
+    border-width: 4px;
+  }
+
+  .carriage-wheels {
+    bottom: -14px;
+    gap: 24px;
+  }
+
+  .carriage-wheel {
+    width: 16px;
+    height: 16px;
+  }
+
+  .track-segment {
+    width: 80px;
+  }
+
+  .track-segment.loco-track {
+    width: 80px;
+  }
+
+  .options-area {
+    gap: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .options-label {
+    font-size: 1.25rem;
+  }
+
+  .options-row {
+    gap: 1.5rem;
+  }
+
+  .option-btn {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  .drag-ghost {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+}

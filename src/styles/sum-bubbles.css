@@ -1,0 +1,185 @@
+.bubbles-game {
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #CAF0F8 0%, #90E0EF 100%);
+}
+
+.bubbles-game .prompt-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.bubbles-game .prompt-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius);
+  padding: 0.3rem 0.9rem;
+}
+
+.bubbles-game .prompt-text .symbol {
+  color: var(--color-primary);
+}
+
+.bubbles-game .prompt-text .target-q {
+  color: var(--color-primary);
+  font-size: 2.2rem;
+}
+
+.bubbles-game .speaker-btn {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0.4rem 0.75rem;
+  background: var(--color-accent);
+  color: var(--color-text);
+  border-radius: var(--radius-full);
+  font-size: 1.25rem;
+  font-weight: 900;
+  border: none;
+  box-shadow: 0 3px 0 #D4A51A;
+  touch-action: manipulation;
+}
+
+.bubbles-game .score-area {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-text);
+  padding: 0 0 0.25rem;
+}
+
+.bubbles-game .score-area span {
+  color: var(--color-primary);
+  font-size: 1.4rem;
+}
+
+.bubbles-game .bubble-field {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.bubbles-game .bubble {
+  position: absolute;
+  bottom: -80px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  touch-action: manipulation;
+  animation: bubble-rise var(--duration, 10s) linear forwards;
+  box-shadow: inset -6px -8px 0 rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.bubbles-game .bubble:nth-child(6n+1) { background: #00B4D8; }
+.bubbles-game .bubble:nth-child(6n+2) { background: #FF6B6B; }
+.bubbles-game .bubble:nth-child(6n+3) { background: #9B59B6; }
+.bubbles-game .bubble:nth-child(6n+4) { background: #FFD93D; color: var(--color-text); text-shadow: none; }
+.bubbles-game .bubble:nth-child(6n+5) { background: #6BCB77; }
+.bubbles-game .bubble:nth-child(6n+6) { background: #FF8E53; }
+
+@keyframes bubble-rise {
+  0% {
+    bottom: -80px;
+    transform: translateX(0);
+  }
+  25% { transform: translateX(var(--drift, 20px)); }
+  50% { transform: translateX(calc(var(--drift, 20px) * -0.5)); }
+  75% { transform: translateX(calc(var(--drift, 20px) * 0.7)); }
+  100% {
+    bottom: 105%;
+    transform: translateX(0);
+  }
+}
+
+.bubbles-game .bubble.popping {
+  animation: bubble-pop 0.3s ease-out forwards !important;
+}
+
+@keyframes bubble-pop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.8; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+.bubbles-game .bubble.wobble-out {
+  animation: wobble-out 0.4s ease-in-out !important;
+}
+
+@keyframes wobble-out {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-10px) rotate(-5deg); }
+  50% { transform: translateX(10px) rotate(5deg); }
+  75% { transform: translateX(-6px) rotate(-2deg); }
+}
+
+#bubble-confetti {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.bubbles-game .next-btn {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.9rem 3rem;
+  background: var(--color-success);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-family: var(--font-family);
+  cursor: pointer;
+  box-shadow: 0 4px 0 #388E3C, 0 6px 18px rgba(0, 0, 0, 0.2);
+  touch-action: manipulation;
+  z-index: 5;
+  animation: bounce-in 0.3s ease-out;
+}
+
+.bubbles-game .next-btn:active {
+  transform: translateX(-50%) translateY(3px);
+  box-shadow: 0 1px 0 #388E3C, 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.bubbles-game .next-btn.hidden {
+  display: none;
+}
+
+@keyframes bounce-in {
+  0% { transform: translateX(-50%) scale(0.4); opacity: 0; }
+  60% { transform: translateX(-50%) scale(1.1); }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+@media (min-width: 768px) {
+  .bubbles-game .bubble { width: 90px; height: 90px; font-size: 2.5rem; }
+  .bubbles-game .prompt-text { font-size: 2.5rem; }
+  .bubbles-game .prompt-text .target-q { font-size: 2.75rem; }
+}

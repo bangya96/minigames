@@ -1,0 +1,132 @@
+:root {
+  --color-bg: #FFF8E7;
+  --color-primary: #FF6B6B;
+  --color-secondary: #4ECDC4;
+  --color-accent: #FFD93D;
+  --color-success: #6BCB77;
+  --color-purple: #9B59B6;
+  --color-text: #2C3E50;
+  --color-nav-bg: #FF8E53;
+
+  --font-family: 'Nunito', 'Comic Sans MS', cursive, sans-serif;
+  --font-size-base: 1.125rem;
+  --font-size-large: 2rem;
+  --font-size-huge: 3rem;
+
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+
+  --touch-min: 64px;
+  --radius: 16px;
+  --radius-full: 9999px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font-family: var(--font-family);
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  touch-action: manipulation;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  padding-left: max(var(--space-md), env(safe-area-inset-left));
+  padding-right: max(var(--space-md), env(safe-area-inset-right));
+  padding-top: max(var(--space-sm), env(safe-area-inset-top));
+  background: var(--color-nav-bg);
+  min-height: 56px;
+}
+
+.home-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  padding: var(--space-sm) var(--space-md);
+  background: white;
+  border-radius: var(--radius-full);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--color-nav-bg);
+  text-decoration: none;
+  transition: transform 0.15s;
+}
+
+.home-btn:active {
+  transform: scale(0.95);
+}
+
+.game-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+main {
+  min-height: calc(100dvh - 56px);
+}
+
+body.game-page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.game-page main {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --font-size-base: 1.25rem;
+    --font-size-large: 2.5rem;
+    --font-size-huge: 4rem;
+  }
+
+  .game-title {
+    font-size: var(--font-size-large);
+  }
+
+  .top-bar {
+    gap: var(--space-md);
+    min-height: 60px;
+  }
+
+  main {
+    min-height: calc(100dvh - 60px);
+  }
+}

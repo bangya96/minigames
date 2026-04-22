@@ -1,0 +1,284 @@
+.monster-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  overflow: hidden;
+  padding: 0.5rem 1rem;
+  gap: 0.5rem;
+}
+
+.monster-game .thought-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.monster-game .thought-bubble {
+  position: relative;
+  background: white;
+  border: 3px solid var(--color-text);
+  border-radius: var(--radius);
+  padding: 0.5rem 1.25rem;
+  font-size: var(--font-size-huge);
+  font-weight: 900;
+  color: var(--color-primary);
+}
+
+.monster-game .thought-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 12px solid var(--color-text);
+}
+
+.monster-game .thought-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid white;
+  z-index: 1;
+}
+
+.monster-game .speaker-btn {
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius-full);
+  touch-action: manipulation;
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.monster-game .monster-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.monster-game .monster-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.monster-game .monster-wrap.eager {
+  background: rgba(155, 89, 182, 0.15);
+  transform: scale(1.08);
+}
+
+.monster-game .monster-wrap.wiggling {
+  animation: wiggle 0.5s ease-in-out infinite;
+}
+
+.monster-game .monster {
+  font-size: 5rem;
+  line-height: 1;
+  transition: transform 0.2s;
+  pointer-events: none;
+}
+
+.monster-game .monster-mouth {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  width: 22px;
+  height: 6px;
+  background: #2C1510;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  transition: width 0.18s ease-out, height 0.18s ease-out;
+  pointer-events: none;
+}
+
+.monster-game .monster-mouth.open {
+  width: 36px;
+  height: 26px;
+  border-radius: 50% 50% 45% 45%;
+  background: #2C1510;
+  box-shadow: inset 0 -4px 0 rgba(255, 120, 120, 0.55);
+}
+
+.monster-game .cookie-ghost {
+  position: fixed;
+  width: 72px;
+  height: 72px;
+  font-size: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
+.monster-game .cookie-btn.hiding {
+  opacity: 0.25;
+  transform: scale(0.85);
+}
+
+.monster-game .counter {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--color-text);
+  min-height: 2rem;
+}
+
+.monster-game .cookie-plate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  padding: 1rem;
+  background: linear-gradient(180deg, #F5E6D3, #E8D5BF);
+  border-radius: var(--radius);
+  border: 3px solid #D4A574;
+  max-width: 400px;
+}
+
+.monster-game .cookie-btn {
+  width: 64px;
+  height: 64px;
+  font-size: 2.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.3s, opacity 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.monster-game .cookie-btn.eaten {
+  animation: cookie-eaten 0.4s ease-out forwards;
+}
+
+.monster-game .cookie-btn.full {
+  animation: cookie-full 0.3s ease-out;
+}
+
+.monster-game .celebration {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+}
+
+.monster-game .rainbow-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  animation: rainbow-burst 0.6s ease-out forwards;
+}
+
+.monster-game .score-area {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.monster-game .score-area span {
+  color: var(--color-accent);
+  font-size: 1.5rem;
+}
+
+.monster-game .next-btn {
+  padding: 0.75rem 3rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-family: var(--font-family);
+  color: white;
+  background: var(--color-success);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  box-shadow: 0 4px 0 #4CAF50;
+  touch-action: manipulation;
+  animation: bounce-in 0.3s ease-out;
+}
+
+.monster-game .next-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #4CAF50;
+}
+
+.monster-game .hidden {
+  display: none;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+@keyframes cookie-eaten {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-80px); opacity: 0; }
+}
+
+@keyframes cookie-full {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.8); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes rainbow-burst {
+  0% { transform: translateY(0) scale(0); opacity: 1; }
+  100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
+}
+
+@keyframes bounce-in {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (min-width: 768px) {
+  .monster-game {
+    height: 100%;
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .monster-game .monster {
+    font-size: 7rem;
+  }
+
+  .monster-game .cookie-plate {
+    max-width: 500px;
+    gap: 1rem;
+  }
+
+  .monster-game .cookie-btn {
+    width: 72px;
+    height: 72px;
+    font-size: 3rem;
+  }
+}
