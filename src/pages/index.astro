@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+const siteUrl = 'https://kids.bangya.my';
 ---
 
 <!doctype html>
@@ -7,14 +8,40 @@ import '../styles/global.css';
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Mini Games for Kids</title>
+  <title>MiniJoy — Fun Learning Games for Kids</title>
+  <meta name="description" content="Fun learning games for kids — letters, numbers, counting and math!" />
+  <meta name="theme-color" content="#FF6B6B" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="MiniJoy" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+
+  <!-- Open Graph / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="MiniJoy — Fun Learning Games for Kids" />
+  <meta property="og:description" content="Fun learning games for kids — letters, numbers, counting and math!" />
+  <meta property="og:image" content={siteUrl + '/logo.png'} />
+  <meta property="og:url" content={siteUrl} />
+  <meta property="og:site_name" content="MiniJoy" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="MiniJoy" />
+  <meta name="twitter:image" content={siteUrl + '/logo.png'} />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet" />
 </head>
 <body>
   <main class="home">
-    <h1 class="home-title">Mini Games!</h1>
+    <h1 class="home-title">MiniJoy</h1>
     <p class="home-subtitle">Pick a game to play</p>
     <div class="game-cards">
       <a href="/balloon-pop" class="game-card card-balloons">
@@ -271,5 +298,10 @@ import '../styles/global.css';
       }
     }
   </style>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
 </body>
 </html>
