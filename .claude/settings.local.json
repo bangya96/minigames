@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(npm run *)",
-      "Bash(npx astro *)"
+      "Bash(npx astro *)",
+      "Bash(gh api *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh run *)",
+      "Bash(curl *)"
     ]
   }
 }
