@@ -47,31 +47,34 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          DEPLOY_RESULT: ${{ needs.deploy.result }}
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          COMMIT_SHA: ${{ github.sha }}
-          REPO: ${{ github.repository }}
-          BRANCH: ${{ github.ref_name }}
-          RUN_ID: ${{ github.run_id }}
         run: |
-          if [[ "$DEPLOY_RESULT" == "success" ]]; then
-            STATUS="Deploy Berjaya"
+          if [[ "${{ needs.deploy.result }}" == "success" ]]; then
+            STATUS="✅ Deploy Berjaya"
             EMOJI="🚀"
           else
-            STATUS="Deploy Gagal"
+            STATUS="❌ Deploy Gagal"
             EMOJI="🔴"
           fi
 
+          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+          COMMIT_SHA="${{ github.sha }}"
           SHORT_SHA="${COMMIT_SHA:0:7}"
-          RUN_URL="https://github.com/$REPO/actions/runs/$RUN_ID"
-          COMMIT_URL="https://github.com/$REPO/commit/$COMMIT_SHA"
-          COMMIT_MSG=$(echo "$COMMIT_MESSAGE" | head -1)
+          REPO="${{ github.repository }}"
+          RUN_URL="https://github.com/${REPO}/actions/runs/${{ github.run_id }}"
+          COMMIT_URL="https://github.com/${REPO}/commit/${COMMIT_SHA}"
 
-          PAYLOAD=$(cat <<ENDL
-          {"chat_id":"$TELEGRAM_CHAT_ID","parse_mode":"HTML","disable_web_page_preview":true,"text":"$EMOJI <b>$STATUS<\/b>\n\n<b>Project:<\/b> MiniJoy\n<b>Branch:<\/b> $BRANCH\n<b>Commit:<\/b> <a href=\\\"$COMMIT_URL\\\">$SHORT_SHA<\/a>\n<b>Message:<\/b> $COMMIT_MSG\n\n🌐 <a href=\\\"https://kids.bangya.my\\\">kids.bangya.my<\/a>\n<a href=\\\"$RUN_URL\\\">View Details →<\/a>"}
-          ENDL
-          )
+          MESSAGE="${EMOJI} <b>${STATUS}</b>
 
-          curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD"
+          <b>Project:</b> MiniJoy
+          <b>Branch:</b> ${{ github.ref_name }}
+          <b>Commit:</b> <a href=\"${COMMIT_URL}\">${SHORT_SHA}</a>
+          <b>Message:</b> ${COMMIT_MSG}
+
+          🌐 <a href=\"https://kids.bangya.my\">kids.bangya.my</a>
+          <a href=\"${RUN_URL}\">View Details</a>"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d parse_mode="HTML" \
+            -d text="${MESSAGE}" \
+            -d disable_web_page_preview=true
