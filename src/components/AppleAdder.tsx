@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'preact/hooks';
+import { useState, useCallback, useEffect } from 'preact/hooks';
 import '../styles/apple-adder.css';
 import { playDing, playBoing, playCheer, playPop, speakPhrase } from '../utils/sounds.js';
 
@@ -49,8 +49,12 @@ function generateRound(prevScore: number): RoundState {
   };
 }
 
+const DEFAULT_STATE: RoundState = { a: 2, b: 3, sum: 5, options: [4, 5, 6], solved: false, wrongPick: null, score: 0 };
+
 export default function AppleAdder() {
-  const [state, setState] = useState<RoundState>(() => generateRound(0));
+  const [state, setState] = useState<RoundState>(DEFAULT_STATE);
+
+  useEffect(() => { setState(generateRound(0)); }, []);
 
   const speakQuestion = useCallback(() => {
     speakPhrase(`${state.a} plus ${state.b} equals?`);

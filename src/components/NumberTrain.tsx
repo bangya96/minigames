@@ -54,8 +54,12 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+const DEFAULT_STATE: GameState = { sequence: [1, 2, null, 4], missingIndex: 2, answer: 3, options: [2, 3, 4], selectedOption: null, solved: false, score: 0, wrongCarriage: false };
+
 export default function NumberTrain() {
-  const [state, setState] = useState<GameState>(() => generateRound(0));
+  const [state, setState] = useState<GameState>(DEFAULT_STATE);
+
+  useEffect(() => { setState(generateRound(0)); }, []);
   const carriageRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);

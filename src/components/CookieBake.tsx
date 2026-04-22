@@ -29,8 +29,12 @@ function generateRound(prevScore: number): RoundState {
   return { a, b, sum, cookies, inOven: 0, solved: false, score: prevScore };
 }
 
+const DEFAULT_STATE: RoundState = { a: 2, b: 3, sum: 5, cookies: [{ id: 1, plate: 'a' }, { id: 2, plate: 'a' }, { id: 3, plate: 'b' }, { id: 4, plate: 'b' }, { id: 5, plate: 'b' }], inOven: 0, solved: false, score: 0 };
+
 export default function CookieBake() {
-  const [state, setState] = useState<RoundState>(() => generateRound(0));
+  const [state, setState] = useState<RoundState>(DEFAULT_STATE);
+
+  useEffect(() => { setState(generateRound(0)); }, []);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [ovenHot, setOvenHot] = useState(false);

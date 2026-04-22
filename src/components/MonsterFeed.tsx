@@ -17,8 +17,12 @@ function generateRound(prevScore: number): GameState {
   return { target, eaten: 0, cookies, celebrating: false, score: prevScore };
 }
 
+const DEFAULT_STATE: GameState = { target: 2, eaten: 0, cookies: [0, 1, 2, 3], celebrating: false, score: 0 };
+
 export default function MonsterFeed() {
-  const [state, setState] = useState<GameState>(() => generateRound(0));
+  const [state, setState] = useState<GameState>(DEFAULT_STATE);
+
+  useEffect(() => { setState(generateRound(0)); }, []);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const monsterRef = useRef<HTMLDivElement>(null);
