@@ -24,12 +24,15 @@ import '../styles/balloon-pop.css';
   import { playPop, playCheer, playBoing, speakLetter } from '../utils/sounds.js';
 
   const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  const BALLOON_COUNT = 7;
-  const COLORS_COUNT = 6;
+  const MAX_ON_SCREEN = 8;
+  const SPAWN_INTERVAL_MS = 1400;
+  const FLOAT_MIN_S = 16;
+  const FLOAT_MAX_S = 22;
 
   let targetLetter = '';
   let score = 0;
   let roundActive = false;
+  let spawnTimer: number | null = null;
 
   const balloonField = document.getElementById('balloon-field')!;
   const targetEl = document.getElementById('target-letter')!;
@@ -100,20 +103,20 @@ import '../styles/balloon-pop.css';
     requestAnimationFrame(animate);
   }
 
-  function createBalloon(letter: string, index: number): HTMLDivElement {
+  function createBalloon(letter: string): HTMLDivElement {
     const balloon = document.createElement('div');
     balloon.className = 'balloon';
     balloon.textContent = letter;
     balloon.dataset.letter = letter;
 
-    const xPosition = 5 + (index * (85 / BALLOON_COUNT)) + Math.random() * (85 / BALLOON_COUNT - 10);
-    const duration = 8 + Math.random() * 7;
+    const xPosition = 5 + Math.random() * 80; // 5%..85%
+    const duration = FLOAT_MIN_S + Math.random() * (FLOAT_MAX_S - FLOAT_MIN_S);
     const drift = (Math.random() - 0.5) * 60;
 
     balloon.style.setProperty('--x-position', `${xPosition}%`);
     balloon.style.setProperty('--duration', `${duration}s`);
     balloon.style.setProperty('--drift', `${drift}px`);
-    balloon.style.animationDelay = `${Math.random() * 2}s`;
+    balloon.style.animationDelay = '0s';
 
     balloon.addEventListener('click', () => handleBalloonClick(balloon, letter));
     balloon.addEventListener('touchstart', (e) => {
@@ -121,7 +124,48 @@ import '../styles/balloon-pop.css';
       handleBalloonClick(balloon, letter);
     }, { passive: false });
 
+    balloon.addEventListener('animationend', (e) => {
+      if ((e as AnimationEvent).animationName !== 'float-up') return;
+      balloon.remove();
+    });
+
     return balloon;
+  }
+
+  function liveBalloons(): HTMLDivElement[] {
+    return (Array.from(balloonField.children) as HTMLDivElement[]).filter(
+      (b) => !b.classList.contains('popping'),
+    );
+  }
+
+  function pickSpawnLetter(): string {
+    const live = liveBalloons();
+    const hasTarget = live.some((b) => b.dataset.letter === targetLetter);
+    // Always keep target letter present on screen.
+    if (!hasTarget) return targetLetter;
+    // Otherwise mostly distractors, occasional target.
+    if (Math.random() < 0.3) return targetLetter;
+    const pool = LETTERS.filter((l) => l !== targetLetter);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function spawnTick() {
+    if (!roundActive) return;
+    if (liveBalloons().length >= MAX_ON_SCREEN) return;
+    const letter = pickSpawnLetter();
+    balloonField.appendChild(createBalloon(letter));
+  }
+
+  function startSpawning() {
+    stopSpawning();
+    spawnTimer = window.setInterval(spawnTick, SPAWN_INTERVAL_MS);
+  }
+
+  function stopSpawning() {
+    if (spawnTimer !== null) {
+      window.clearInterval(spawnTimer);
+      spawnTimer = null;
+    }
   }
 
   function handleBalloonClick(balloon: HTMLDivElement, letter: string) {
@@ -130,6 +174,7 @@ import '../styles/balloon-pop.css';
 
     if (letter === targetLetter) {
       roundActive = false;
+      stopSpawning();
       balloon.classList.add('popping');
       playPop();
       setTimeout(playCheer, 150);
@@ -145,6 +190,7 @@ import '../styles/balloon-pop.css';
   }
 
   function startRound() {
+    stopSpawning();
     roundActive = true;
     nextBtn.classList.add('hidden');
     balloonField.innerHTML = '';
@@ -152,19 +198,20 @@ import '../styles/balloon-pop.css';
     targetLetter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
     targetEl.textContent = targetLetter;
 
-    const letters = [targetLetter];
-    const available = LETTERS.filter(l => l !== targetLetter);
-    const shuffled = shuffle(available);
-    for (let i = 0; i < BALLOON_COUNT - 1; i++) {
-      letters.push(shuffled[i % shuffled.length]);
-    }
-
-    const mixed = shuffle(letters);
-    mixed.forEach((letter, i) => {
-      const balloon = createBalloon(letter, i);
+    // Seed a few balloons immediately at staggered heights so the field
+    // isn't empty while waiting for the spawn timer.
+    const seedCount = 4;
+    const seedLetters = [targetLetter];
+    const pool = shuffle(LETTERS.filter((l) => l !== targetLetter));
+    for (let i = 0; i < seedCount - 1; i++) seedLetters.push(pool[i]);
+    shuffle(seedLetters).forEach((letter) => {
+      const balloon = createBalloon(letter);
+      // Stagger initial vertical progress so they don't all appear at the bottom.
+      balloon.style.animationDelay = `-${Math.random() * (FLOAT_MIN_S * 0.6)}s`;
       balloonField.appendChild(balloon);
     });
 
+    startSpawning();
     speakLetter(targetLetter);
   }
 

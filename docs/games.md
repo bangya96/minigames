@@ -81,14 +81,6 @@ Breakpoint: mobile-first, scale up at `@media (min-width: 768px)`.
 **Goal**: pick the starting letter of the animal shown.
 **Mechanics**: big emoji + name + three letter tiles. Tile glows on correct, shakes on wrong.
 
-### 4. Catch the Stars ⭐ — `/catch-stars`
-
-**Pattern**: Astro + inline `<script>`.
-**Goal**: drag the basket to catch only letters (or only numbers) — mission toggles per round.
-**Mechanics**: stars fall at random speeds. Overlap with basket → catch (sparkle) or mistake (boing). Basket moves by finger drag.
-**Drag pattern**: `pointerdown` on basket calls `basket.setPointerCapture(e.pointerId)`, and `pointermove`/`pointerup`/`pointercancel` are attached to the **basket itself**, not `document`. Document-level listeners are unreliable on mobile Safari after pointer capture. Also supports tap-anywhere-in-field to reposition the basket instantly.
-**CSS**: basket has `touch-action: none` so the page doesn't pan while dragging.
-
 ### 5. Feed the Monster 👾 — `/monster-feed`
 
 **Pattern**: Preact island (`src/components/MonsterFeed.tsx`).
@@ -96,13 +88,6 @@ Breakpoint: mobile-first, scale up at `@media (min-width: 768px)`.
 **Mechanics**: drag cookies into the monster OR tap them (fallback). Mouth opens while a cookie hovers over the monster; closes and wiggles on drop. Crunch pitch rises with each cookie via `playCrunch(1 + (eaten - 1) * 0.12)`.
 **Refs**: `monsterRef` is the hit-test target. Drag state lives in `dragging` + `dragPos`.
 **State**: `{ target, eaten, cookies, celebrating, score }`.
-
-### 6. Connect the Dots ✨ — `/connect-dots`
-
-**Pattern**: Astro + canvas. Full logic + shape definitions inline.
-**Goal**: tap dots 1 → N in order to reveal a shape emoji.
-**Mechanics**: `SHAPES` array with normalized 0..1 coordinates. `scalePoints()` maps to canvas pixels using `pad = 40` and **enforces a minimum pairwise distance** (`2 * HIT_RADIUS + 8` px). If any two dots land closer, the whole shape is uniformly scaled down until the constraint holds. This protects new shapes from a 5yo's fat-finger problem.
-**When adding a shape**: aim for ≥ 0.15 unit separation between any two dots in the source. Don't duplicate a point (e.g., don't repeat the start point as the last point).
 
 ### 7. Apple Adder 🍎 — `/apple-adder` *(math)*
 
