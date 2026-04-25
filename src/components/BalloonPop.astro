@@ -114,8 +114,8 @@ import '../styles/balloon-pop.css';
     const drift = (Math.random() - 0.5) * 60;
 
     balloon.style.setProperty('--x-position', `${xPosition}%`);
-    balloon.style.setProperty('--duration', `${duration}s`);
     balloon.style.setProperty('--drift', `${drift}px`);
+    balloon.style.animationDuration = `${duration}s`;
     balloon.style.animationDelay = '0s';
 
     balloon.addEventListener('click', () => handleBalloonClick(balloon, letter));

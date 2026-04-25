@@ -77,7 +77,7 @@
   user-select: none;
   touch-action: manipulation;
   bottom: -120px;
-  animation: float-up var(--duration, 10s) linear forwards;
+  animation: float-up 20s linear forwards;
   left: var(--x-position);
   transition: filter 0.1s;
 }
