@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'preact/hooks';
 import '../styles/number-train.css';
 import { playDing, playBoing, playCheer } from '../utils/sounds.js';
+import { getSavedScore, saveScore, calculateStage } from '../utils/storage.js';
 
 interface RoundState {
   sequence: (number | null)[];
@@ -17,21 +18,27 @@ interface GameState extends RoundState {
 }
 
 function generateRound(prevScore: number): GameState {
-  const start = Math.floor(Math.random() * 7) + 1;
-  const length = Math.floor(Math.random() * 3) + 4; // 4-6
+  const stage = calculateStage(prevScore);
+  const startMax = Math.min(30, 5 + stage * 2);
+  const start = Math.floor(Math.random() * startMax) + 1;
+  
+  const minLen = Math.min(5, 3 + Math.floor(stage / 2));
+  const maxLen = Math.min(8, 4 + Math.floor(stage / 2));
+  const length = Math.floor(Math.random() * (maxLen - minLen + 1)) + minLen;
+
   const seq = Array.from({ length }, (_, i) => start + i);
   const missingIndex = Math.floor(Math.random() * length);
   const answer = seq[missingIndex];
   seq[missingIndex] = null;
 
-  const offsets = shuffle([-2, -1, 1, 2]);
+  const offsets = shuffle([-2, -1, 1, 2, -3, 3]);
   const options = [answer];
   for (const offset of offsets) {
-    if (options.length >= 3) break;
+    if (options.length >= (stage > 4 ? 4 : 3)) break;
     const d = answer + offset;
     if (d > 0) options.push(d);
   }
-  while (options.length < 3) options.push(answer + options.length);
+  while (options.length < (stage > 4 ? 4 : 3)) options.push(answer + options.length);
 
   return {
     sequence: seq,
@@ -59,7 +66,11 @@ const DEFAULT_STATE: GameState = { sequence: [1, 2, null, 4], missingIndex: 2, a
 export default function NumberTrain() {
   const [state, setState] = useState<GameState>(DEFAULT_STATE);
 
-  useEffect(() => { setState(generateRound(0)); }, []);
+  useEffect(() => {
+    const saved = getSavedScore('number-train');
+    setState(generateRound(saved));
+  }, []);
+
   const carriageRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
@@ -79,12 +90,16 @@ export default function NumberTrain() {
     if (state.selectedOption === state.answer) {
       playDing();
       setTimeout(playCheer, 200);
-      setState(s => ({
-        ...s,
-        solved: true,
-        score: s.score + 1,
-        sequence: s.sequence.map((v, i) => i === s.missingIndex ? s.answer : v),
-      }));
+      setState(s => {
+        const newScore = s.score + 1;
+        saveScore('number-train', newScore);
+        return {
+          ...s,
+          solved: true,
+          score: newScore,
+          sequence: s.sequence.map((v, i) => i === s.missingIndex ? s.answer : v),
+        };
+      });
     } else {
       playBoing();
       setState(s => ({ ...s, wrongCarriage: true, selectedOption: null }));
@@ -123,12 +138,16 @@ export default function NumberTrain() {
           if (value === state.answer) {
             playDing();
             setTimeout(playCheer, 200);
-            setState(s => ({
-              ...s,
-              solved: true,
-              score: s.score + 1,
-              sequence: s.sequence.map((v, i) => i === s.missingIndex ? s.answer : v),
-            }));
+            setState(s => {
+              const newScore = s.score + 1;
+              saveScore('number-train', newScore);
+              return {
+                ...s,
+                solved: true,
+                score: newScore,
+                sequence: s.sequence.map((v, i) => i === s.missingIndex ? s.answer : v),
+              };
+            });
           } else {
             playBoing();
             setState(s => ({ ...s, wrongCarriage: true }));
@@ -161,9 +180,14 @@ export default function NumberTrain() {
   return (
     <div class="train-game">
       <p class="train-prompt">What number is missing?</p>
-      <p class="train-score">Score: {state.score}</p>
+      
+      <div class="game-stats-bar">
+        <span>Stage {calculateStage(state.score)}/10</span>
+        <span>Score: {state.score}</span>
+      </div>
 
       <div class="train-wrapper">
+
         <div class="locomotive">
           <div class="locomotive-body">
             <span class="locomotive-face">🚂</span>

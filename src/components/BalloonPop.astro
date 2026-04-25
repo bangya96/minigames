@@ -4,13 +4,14 @@ import '../styles/balloon-pop.css';
 
 <div class="balloon-game">
   <div class="prompt-area">
-    <span class="prompt-text">Find the letter</span>
+    <span class="prompt-text" id="prompt-label">Find the letter</span>
     <span class="target-letter" id="target-letter">A</span>
-    <button class="speaker-btn" id="speak-btn" aria-label="Hear the letter">🔊</button>
+    <button class="speaker-btn" id="speak-btn" aria-label="Hear the prompt">🔊</button>
   </div>
 
-  <div class="score-area">
-    <span id="score">0</span> stars!
+  <div class="game-stats-bar">
+    <span id="stage-display">Stage 1/10</span>
+    <span>Score: <span id="score">0</span></span>
   </div>
 
   <div class="balloon-field" id="balloon-field"></div>
@@ -21,26 +22,34 @@ import '../styles/balloon-pop.css';
 </div>
 
 <script>
-  import { playPop, playCheer, playBoing, speakLetter } from '../utils/sounds.js';
+  import { playPop, playCheer, playBoing, speakLetter, speakPhrase } from '../utils/sounds.js';
+  import { getSavedScore, saveScore, calculateStage } from '../utils/storage.js';
 
   const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  const MAX_ON_SCREEN = 8;
-  const SPAWN_INTERVAL_MS = 1400;
-  const FLOAT_MIN_S = 16;
-  const FLOAT_MAX_S = 22;
+  const BASE_FLOAT_MIN = 16;
+  const BASE_FLOAT_MAX = 22;
 
-  let targetLetter = '';
-  let score = 0;
+  let targetLetters: string[] = [];
+  let targetsToPop: string[] = [];
+  let score = getSavedScore('balloon-pop');
   let roundActive = false;
   let spawnTimer: number | null = null;
 
   const balloonField = document.getElementById('balloon-field')!;
+  const promptLabel = document.getElementById('prompt-label')!;
   const targetEl = document.getElementById('target-letter')!;
   const scoreEl = document.getElementById('score')!;
+  const stageEl = document.getElementById('stage-display')!;
   const nextBtn = document.getElementById('next-btn')!;
   const speakBtn = document.getElementById('speak-btn')!;
   const canvas = document.getElementById('confetti-canvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
+
+  function updateStats() {
+    scoreEl.textContent = String(score);
+    stageEl.textContent = `Stage ${calculateStage(score)}/10`;
+  }
+  updateStats();
 
   function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
@@ -56,6 +65,19 @@ import '../styles/balloon-pop.css';
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
+  }
+
+  function getStageConfig(stage: number) {
+    if (stage === 1) return { targets: 1, maxBalloons: 2, spawnRate: 1600 };
+    if (stage === 2) return { targets: 1, maxBalloons: 4, spawnRate: 1400 };
+    if (stage === 3) return { targets: 1, maxBalloons: 8, spawnRate: 1200 };
+    if (stage === 4) return { targets: 2, maxBalloons: 4, spawnRate: 1400 };
+    if (stage === 5) return { targets: 2, maxBalloons: 6, spawnRate: 1200 };
+    if (stage === 6) return { targets: 2, maxBalloons: 8, spawnRate: 1100 };
+    if (stage === 7) return { targets: 3, maxBalloons: 5, spawnRate: 1300 };
+    if (stage === 8) return { targets: 3, maxBalloons: 8, spawnRate: 1100 };
+    if (stage === 9) return { targets: 3, maxBalloons: 10, spawnRate: 900 };
+    return { targets: 4, maxBalloons: 10, spawnRate: 900 };
   }
 
   function spawnConfetti() {
@@ -109,8 +131,13 @@ import '../styles/balloon-pop.css';
     balloon.textContent = letter;
     balloon.dataset.letter = letter;
 
-    const xPosition = 5 + Math.random() * 80; // 5%..85%
-    const duration = FLOAT_MIN_S + Math.random() * (FLOAT_MAX_S - FLOAT_MIN_S);
+    const stage = calculateStage(score);
+    const speedMult = 1 - ((stage - 1) * 0.05);
+
+    const xPosition = 5 + Math.random() * 80;
+    const minDur = BASE_FLOAT_MIN * speedMult;
+    const maxDur = BASE_FLOAT_MAX * speedMult;
+    const duration = minDur + Math.random() * (maxDur - minDur);
     const drift = (Math.random() - 0.5) * 60;
 
     balloon.style.setProperty('--x-position', `${xPosition}%`);
@@ -133,32 +160,48 @@ import '../styles/balloon-pop.css';
   }
 
   function liveBalloons(): HTMLDivElement[] {
-    return (Array.from(balloonField.children) as HTMLDivElement[]).filter(
-      (b) => !b.classList.contains('popping'),
-    );
+    return Array.from(balloonField.querySelectorAll('.balloon:not(.popping)')) as HTMLDivElement[];
   }
 
   function pickSpawnLetter(): string {
     const live = liveBalloons();
-    const hasTarget = live.some((b) => b.dataset.letter === targetLetter);
-    // Always keep target letter present on screen.
-    if (!hasTarget) return targetLetter;
-    // Otherwise mostly distractors, occasional target.
-    if (Math.random() < 0.3) return targetLetter;
-    const pool = LETTERS.filter((l) => l !== targetLetter);
+    const missingTargets = targetsToPop.filter(t => !live.some(b => b.dataset.letter === t));
+    
+    if (missingTargets.length > 0) {
+      return missingTargets[0];
+    }
+    
+    if (Math.random() < 0.3 && targetsToPop.length > 0) {
+      return targetsToPop[Math.floor(Math.random() * targetsToPop.length)];
+    }
+    
+    const pool = LETTERS.filter((l) => !targetLetters.includes(l));
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
   function spawnTick() {
     if (!roundActive) return;
-    if (liveBalloons().length >= MAX_ON_SCREEN) return;
+    const config = getStageConfig(calculateStage(score));
+    const live = liveBalloons();
+    
+    // Strict cull of any accidental extra balloons (e.g. from HMR duplicate intervals)
+    if (live.length > config.maxBalloons) {
+      for (let i = config.maxBalloons; i < live.length; i++) {
+        live[i].remove();
+      }
+    }
+    
+    if (live.length >= config.maxBalloons) return;
+    
     const letter = pickSpawnLetter();
     balloonField.appendChild(createBalloon(letter));
   }
 
   function startSpawning() {
     stopSpawning();
-    spawnTimer = window.setInterval(spawnTick, SPAWN_INTERVAL_MS);
+    const stage = calculateStage(score);
+    const config = getStageConfig(stage);
+    spawnTimer = window.setInterval(spawnTick, config.spawnRate);
   }
 
   function stopSpawning() {
@@ -172,20 +215,42 @@ import '../styles/balloon-pop.css';
     if (!roundActive) return;
     if (balloon.classList.contains('popping') || balloon.classList.contains('wobble')) return;
 
-    if (letter === targetLetter) {
-      roundActive = false;
-      stopSpawning();
+    if (targetsToPop.includes(letter)) {
       balloon.classList.add('popping');
       playPop();
-      setTimeout(playCheer, 150);
-      spawnConfetti();
-      score++;
-      scoreEl.textContent = String(score);
-      nextBtn.classList.remove('hidden');
+      
+      targetsToPop = targetsToPop.filter(l => l !== letter);
+
+      if (targetsToPop.length === 0) {
+        roundActive = false;
+        stopSpawning();
+        setTimeout(playCheer, 150);
+        spawnConfetti();
+        score++;
+        saveScore('balloon-pop', score);
+        updateStats();
+        nextBtn.classList.remove('hidden');
+      }
     } else {
       balloon.classList.add('wobble');
       playBoing();
       setTimeout(() => balloon.classList.remove('wobble'), 400);
+    }
+  }
+
+  function sayPrompt() {
+    if (targetLetters.length === 1) {
+      speakLetter(targetLetters[0]);
+    } else {
+      let promptText = "";
+      if (targetLetters.length === 2) {
+        promptText = `${targetLetters[0]} and ${targetLetters[1]}`;
+      } else {
+        const last = targetLetters[targetLetters.length - 1];
+        const rest = targetLetters.slice(0, -1);
+        promptText = `${rest.join(', ')}, and ${last}`;
+      }
+      speakPhrase(`Find the letters ${promptText}`);
     }
   }
 
@@ -195,29 +260,46 @@ import '../styles/balloon-pop.css';
     nextBtn.classList.add('hidden');
     balloonField.innerHTML = '';
 
-    targetLetter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
-    targetEl.textContent = targetLetter;
+    const stage = calculateStage(score);
+    const config = getStageConfig(stage);
 
-    // Seed a few balloons immediately at staggered heights so the field
-    // isn't empty while waiting for the spawn timer.
-    const seedCount = 4;
-    const seedLetters = [targetLetter];
-    const pool = shuffle(LETTERS.filter((l) => l !== targetLetter));
-    for (let i = 0; i < seedCount - 1; i++) seedLetters.push(pool[i]);
+    targetLetters = shuffle(LETTERS).slice(0, config.targets);
+    targetsToPop = [...targetLetters];
+
+    let promptText = "";
+    if (targetLetters.length === 1) {
+      promptLabel.textContent = "Find the letter";
+      promptText = targetLetters[0];
+    } else if (targetLetters.length === 2) {
+      promptLabel.textContent = "Find the letters";
+      promptText = `${targetLetters[0]} & ${targetLetters[1]}`;
+    } else {
+      promptLabel.textContent = "Find the letters";
+      const last = targetLetters[targetLetters.length - 1];
+      const rest = targetLetters.slice(0, -1);
+      promptText = `${rest.join(', ')} & ${last}`;
+    }
+    targetEl.textContent = promptText;
+
+    const speedMult = 1 - ((stage - 1) * 0.05);
+    const minDur = BASE_FLOAT_MIN * speedMult;
+
+    const seedCount = Math.min(config.maxBalloons, config.targets + 2);
+    const seedLetters = [...targetLetters];
+    const pool = shuffle(LETTERS.filter((l) => !targetLetters.includes(l)));
+    for (let i = seedLetters.length; i < seedCount; i++) seedLetters.push(pool.pop()!);
+
     shuffle(seedLetters).forEach((letter) => {
       const balloon = createBalloon(letter);
-      // Stagger initial vertical progress so they don't all appear at the bottom.
-      balloon.style.animationDelay = `-${Math.random() * (FLOAT_MIN_S * 0.6)}s`;
+      balloon.style.animationDelay = `-${Math.random() * (minDur * 0.6)}s`;
       balloonField.appendChild(balloon);
     });
 
     startSpawning();
-    speakLetter(targetLetter);
+    sayPrompt();
   }
 
-  speakBtn.addEventListener('click', () => {
-    speakLetter(targetLetter);
-  });
+  speakBtn.addEventListener('click', sayPrompt);
 
   nextBtn.addEventListener('click', () => {
     startRound();

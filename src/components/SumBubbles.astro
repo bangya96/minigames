@@ -14,8 +14,9 @@ import '../styles/sum-bubbles.css';
     <button class="speaker-btn" id="speak-btn" aria-label="Hear the question">🔊</button>
   </div>
 
-  <div class="score-area">
-    <span id="score">0</span> stars!
+  <div class="game-stats-bar">
+    <span id="stage-display">Stage 1/10</span>
+    <span>Score: <span id="score">0</span></span>
   </div>
 
   <div class="bubble-field" id="bubble-field"></div>
@@ -27,23 +28,31 @@ import '../styles/sum-bubbles.css';
 
 <script>
   import { playPop, playCheer, playBoing, speakPhrase } from '../utils/sounds.js';
+  import { getSavedScore, saveScore, calculateStage } from '../utils/storage.js';
 
   const MAX_BUBBLES = 6;
-  const SPAWN_INTERVAL_MS = 1100;
+  const BASE_SPAWN_MS = 1100;
 
   const field = document.getElementById('bubble-field')!;
   const aEl = document.getElementById('a')!;
   const bEl = document.getElementById('b')!;
   const scoreEl = document.getElementById('score')!;
+  const stageEl = document.getElementById('stage-display')!;
   const nextBtn = document.getElementById('next-btn')!;
   const speakBtn = document.getElementById('speak-btn')!;
   const canvas = document.getElementById('bubble-confetti') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
 
   let a = 0, b = 0, sum = 0;
-  let score = 0;
+  let score = getSavedScore('sum-bubbles');
   let roundActive = false;
   let spawnTimer: number | null = null;
+
+  function updateStats() {
+    scoreEl.textContent = String(score);
+    stageEl.textContent = `Stage ${calculateStage(score)}/10`;
+  }
+  updateStats();
 
   function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
@@ -53,8 +62,10 @@ import '../styles/sum-bubbles.css';
   window.addEventListener('resize', resizeCanvas);
 
   function pickAddition() {
-    a = 1 + Math.floor(Math.random() * 8);
-    b = 1 + Math.floor(Math.random() * (10 - a));
+    const stage = calculateStage(score);
+    const maxSum = Math.min(10, 2 + stage);
+    a = 1 + Math.floor(Math.random() * (maxSum - 1));
+    b = 1 + Math.floor(Math.random() * (maxSum - a));
     sum = a + b;
   }
 
@@ -81,7 +92,10 @@ import '../styles/sum-bubbles.css';
 
     const fieldWidth = field.clientWidth;
     const left = 8 + Math.random() * Math.max(0, fieldWidth - 80);
-    const duration = 9 + Math.random() * 4;
+    
+    const stage = calculateStage(score);
+    const speedMult = 1 - ((stage - 1) * 0.05);
+    const duration = (9 + Math.random() * 4) * speedMult;
     const drift = (Math.random() - 0.5) * 50;
 
     el.style.left = `${left}px`;
@@ -111,7 +125,8 @@ import '../styles/sum-bubbles.css';
       playPop();
       setTimeout(playCheer, 150);
       score++;
-      scoreEl.textContent = String(score);
+      saveScore('sum-bubbles', score);
+      updateStats();
       spawnConfetti(el);
       setTimeout(() => el.remove(), 300);
       nextBtn.classList.remove('hidden');
@@ -166,7 +181,9 @@ import '../styles/sum-bubbles.css';
 
   function startSpawn() {
     stopSpawn();
-    spawnTimer = window.setInterval(spawnBubble, SPAWN_INTERVAL_MS);
+    const stage = calculateStage(score);
+    const spawnInterval = BASE_SPAWN_MS * (1 - ((stage - 1) * 0.05));
+    spawnTimer = window.setInterval(spawnBubble, spawnInterval);
     spawnBubble();
     setTimeout(spawnBubble, 300);
   }

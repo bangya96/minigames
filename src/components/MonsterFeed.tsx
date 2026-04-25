@@ -151,10 +151,6 @@ export default function MonsterFeed() {
         ))}
       </div>
 
-      <div class="score-area">
-        <span>{state.score}</span> stars!
-      </div>
-
       {state.celebrating && (
         <button class="next-btn" onClick={nextRound}>NEXT!</button>
       )}

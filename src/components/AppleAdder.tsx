@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'preact/hooks';
 import '../styles/apple-adder.css';
 import { playDing, playBoing, playCheer, playPop, speakPhrase } from '../utils/sounds.js';
+import { getSavedScore, saveScore, calculateStage } from '../utils/storage.js';
 
 interface RoundState {
   a: number;
@@ -22,8 +23,10 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function generateRound(prevScore: number): RoundState {
-  const a = 1 + Math.floor(Math.random() * 8);
-  const b = 1 + Math.floor(Math.random() * (10 - a));
+  const stage = calculateStage(prevScore);
+  const maxSum = Math.min(10, 2 + stage);
+  const a = 1 + Math.floor(Math.random() * (maxSum - 1));
+  const b = 1 + Math.floor(Math.random() * (maxSum - a));
   const sum = a + b;
 
   const pool = new Set<number>([sum]);
@@ -54,7 +57,10 @@ const DEFAULT_STATE: RoundState = { a: 2, b: 3, sum: 5, options: [4, 5, 6], solv
 export default function AppleAdder() {
   const [state, setState] = useState<RoundState>(DEFAULT_STATE);
 
-  useEffect(() => { setState(generateRound(0)); }, []);
+  useEffect(() => {
+    const saved = getSavedScore('apple-adder');
+    setState(generateRound(saved));
+  }, []);
 
   const speakQuestion = useCallback(() => {
     speakPhrase(`${state.a} plus ${state.b} equals?`);
@@ -66,7 +72,11 @@ export default function AppleAdder() {
       playDing();
       setTimeout(playCheer, 150);
       setTimeout(playPop, 350);
-      setState(s => ({ ...s, solved: true, wrongPick: null, score: s.score + 1 }));
+      setState(s => {
+        const newScore = s.score + 1;
+        saveScore('apple-adder', newScore);
+        return { ...s, solved: true, wrongPick: null, score: newScore };
+      });
       setTimeout(() => speakPhrase(`${state.a} plus ${state.b} equals ${state.sum}!`), 400);
     } else {
       playBoing();
@@ -89,8 +99,9 @@ export default function AppleAdder() {
 
   return (
     <div class="apple-game">
-      <div class="apple-score">
-        <span>{state.score}</span> stars!
+      <div class="game-stats-bar">
+        <span>Stage {calculateStage(state.score)}/10</span>
+        <span>Score: {state.score}</span>
       </div>
 
       <div class="equation-area">

@@ -15,8 +15,9 @@ import '../styles/animal-match.css';
 
   <div class="letter-buttons" id="letter-buttons"></div>
 
-  <div class="score-area">
-    <span id="score">0</span> stars!
+  <div class="game-stats-bar">
+    <span id="stage-display">Stage 1/10</span>
+    <span>Score: <span id="score">0</span></span>
   </div>
 
   <button class="next-btn hidden" id="next-btn">NEXT!</button>
@@ -24,6 +25,7 @@ import '../styles/animal-match.css';
 
 <script>
   import { playPop, playCheer, playBoing, speakPhrase } from '../utils/sounds.js';
+  import { getSavedScore, saveScore, calculateStage } from '../utils/storage.js';
 
   const ANIMALS = [
     { emoji: '🦁', name: 'Lion', letter: 'L' },
@@ -46,7 +48,7 @@ import '../styles/animal-match.css';
 
   const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   let currentAnimal = ANIMALS[0];
-  let score = 0;
+  let score = getSavedScore('animal-match');
   let roundActive = false;
   const recentAnimals: number[] = [];
 
@@ -54,8 +56,15 @@ import '../styles/animal-match.css';
   const animalName = document.getElementById('animal-name')!;
   const letterButtons = document.getElementById('letter-buttons')!;
   const scoreEl = document.getElementById('score')!;
+  const stageEl = document.getElementById('stage-display')!;
   const nextBtn = document.getElementById('next-btn')!;
   const speakBtn = document.getElementById('speak-btn')!;
+
+  function updateStats() {
+    scoreEl.textContent = String(score);
+    stageEl.textContent = `Stage ${calculateStage(score)}/10`;
+  }
+  updateStats();
 
   function shuffle<T>(arr: T[]): T[] {
     const a = [...arr];
@@ -83,7 +92,9 @@ import '../styles/animal-match.css';
     animalName.textContent = currentAnimal.name;
 
     const correct = currentAnimal.letter;
-    const distractors = shuffle(ALPHABET.filter(l => l !== correct)).slice(0, 2);
+    const stage = calculateStage(score);
+    const distractorCount = stage < 4 ? 2 : (stage < 7 ? 3 : 4);
+    const distractors = shuffle(ALPHABET.filter(l => l !== correct)).slice(0, distractorCount);
     const options = shuffle([correct, ...distractors]);
 
     options.forEach(letter => {
@@ -107,7 +118,8 @@ import '../styles/animal-match.css';
       playPop();
       setTimeout(playCheer, 150);
       score++;
-      scoreEl.textContent = String(score);
+      saveScore('animal-match', score);
+      updateStats();
       nextBtn.classList.remove('hidden');
     } else {
       btn.classList.add('shake');

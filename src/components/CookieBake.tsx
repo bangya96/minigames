@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'preact/hooks';
 import '../styles/cookie-bake.css';
 import { playCrunch, playCheer, playPop, playBoing, speakPhrase } from '../utils/sounds.js';
+import { getSavedScore, saveScore, calculateStage } from '../utils/storage.js';
 
 interface Cookie {
   id: number;
@@ -20,8 +21,10 @@ interface RoundState {
 let cookieSeq = 0;
 
 function generateRound(prevScore: number): RoundState {
-  const a = 1 + Math.floor(Math.random() * 8);
-  const b = 1 + Math.floor(Math.random() * (10 - a));
+  const stage = calculateStage(prevScore);
+  const maxSum = Math.min(10, 2 + stage);
+  const a = 1 + Math.floor(Math.random() * (maxSum - 1));
+  const b = 1 + Math.floor(Math.random() * (maxSum - a));
   const sum = a + b;
   const cookies: Cookie[] = [];
   for (let i = 0; i < a; i++) cookies.push({ id: ++cookieSeq, plate: 'a' });
@@ -34,7 +37,10 @@ const DEFAULT_STATE: RoundState = { a: 2, b: 3, sum: 5, cookies: [{ id: 1, plate
 export default function CookieBake() {
   const [state, setState] = useState<RoundState>(DEFAULT_STATE);
 
-  useEffect(() => { setState(generateRound(0)); }, []);
+  useEffect(() => {
+    const saved = getSavedScore('cookie-bake');
+    setState(generateRound(saved));
+  }, []);
   const [dragging, setDragging] = useState<number | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [ovenHot, setOvenHot] = useState(false);
@@ -59,7 +65,9 @@ export default function CookieBake() {
           setTimeout(playPop, 180);
           setTimeout(() => speakPhrase(`${s.a} plus ${s.b} equals ${s.sum}!`), 300);
         }, 200);
-        return { ...s, cookies: newCookies, inOven: newIn, solved: true, score: s.score + 1 };
+        const newScore = s.score + 1;
+        saveScore('cookie-bake', newScore);
+        return { ...s, cookies: newCookies, inOven: newIn, solved: true, score: newScore };
       }
       return { ...s, cookies: newCookies, inOven: newIn };
     });
@@ -122,6 +130,11 @@ export default function CookieBake() {
 
   return (
     <div class="bake-game">
+      <div class="game-stats-bar">
+        <span>Stage {calculateStage(state.score)}/10</span>
+        <span>Score: {state.score}</span>
+      </div>
+
       <div class="bake-header">
         <div class="bake-equation">
           <span>{state.a}</span>
@@ -131,7 +144,6 @@ export default function CookieBake() {
           <span class={`total ${state.solved ? 'reveal' : ''}`}>{state.solved ? state.sum : '?'}</span>
           <button class="speaker-btn" onClick={speakQuestion} aria-label="Hear the question">🔊</button>
         </div>
-        <div class="bake-score">Score: <span>{state.score}</span></div>
       </div>
 
       <div class="plates-row">
